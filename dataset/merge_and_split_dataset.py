@@ -13,7 +13,10 @@ merged_df = pd.merge(
     on="sentence_id",
     how="left",
 )
-merged_df["sentiment"] = merged_df["sentiment"].replace({"positive": 2, "negative": 1})
+replace_dict = {"positive": 2, "negative": 1}
+merged_df["sentiment"] = (
+    merged_df["sentiment"].map(replace_dict).fillna(merged_df["sentiment"])
+)
 
 # count the number of samples for each category and sentiment
 grouped_df = (
