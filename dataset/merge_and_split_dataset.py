@@ -87,6 +87,10 @@ pivot_df = pivot_df[~pivot_df["sentence_id"].isin(val_dataset["sentence_id"])]
 
 train_dataset_pivot = pivot_df
 
+train_dataset_pivot = train_dataset_pivot.drop("sentence_id", axis=1)
+val_dataset_pivot = val_dataset_pivot.drop("sentence_id", axis=1)
+test_dataset_pivot = test_dataset_pivot.drop("sentence_id", axis=1)
+
 test_dataset_pivot.to_csv("dataset/test_dataset.csv", index=False)
 val_dataset_pivot.to_csv("dataset/val_dataset.csv", index=False)
 train_dataset_pivot.to_csv("dataset/train_dataset.csv", index=False)
