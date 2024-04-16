@@ -11,6 +11,12 @@ pre-commit = "^3.7.0"
 openai = "^1.17.1"
 python-dotenv = "^1.0.1"
 pandas = "^2.2.2"
+datasets = "^2.18.0"
+emoji = "^2.11.0"
+vncorenlp = "^1.0.3"
+tensorflow = "^2.16.1"
+nltk = "^3.8.1"
+transformers = "4.36.0"
 
 
 [build-system]
