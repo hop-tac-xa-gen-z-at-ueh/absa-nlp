@@ -384,6 +384,7 @@ def preprocess_tokenized_dataset(
     tokenized_dataset, tokenizer, labels, batch_size, shuffle=False
 ):
     tf_dataset = to_tensorflow_format(tokenized_dataset)
+    # features = {x: tf_dataset[x].to_tensor() for x in tokenizer.model_input_names}
     features = {x: tf_dataset[x] for x in tokenizer.model_input_names}
     labels = labels.reshape(len(labels), -1)
 
