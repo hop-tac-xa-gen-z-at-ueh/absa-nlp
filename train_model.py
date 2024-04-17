@@ -1,12 +1,21 @@
 from datasets import load_dataset
-import numpy as np
-import regex as re
-import emoji
-import pandas as pd
-from tensorflow.data import Dataset
-import tensorflow as tf
-from vncorenlp import VnCoreNLP
 from nltk import flatten
+from tensorflow.data import Dataset
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.layers import Input, Dense, Dropout, concatenate
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
+from transformers import AutoTokenizer
+from transformers import TFAutoModel
+from vncorenlp import VnCoreNLP
+import emoji
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+import pandas as pd
+import regex as re
+import tensorflow as tf
+
 
 TRAIN_PATH = "dataset/train_dataset.csv"
 VAL_PATH = "dataset/val_dataset.csv"
@@ -341,8 +350,6 @@ def text_preprocess(text):
     return text
 
 
-from transformers import AutoTokenizer
-
 tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base")
 print(tokenizer.max_model_input_sizes)
 
@@ -406,10 +413,6 @@ test_tf_dataset = preprocess_tokenized_dataset(
 
 print(train_tf_dataset)
 
-from transformers import TFAutoModel
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, Dropout, concatenate
-
 
 def create_model(optimizer):
     # https://riccardo-cantini.netlify.app/post/bert_text_classification
@@ -453,14 +456,8 @@ def create_model(optimizer):
     return model
 
 
-from tensorflow.keras.optimizers import Adam
-
 optimizer = Adam(learning_rate=1e-5)
 type(optimizer)
-
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.train import CheckpointOptions
-import os
 
 # Stop if no improvement after 5 epochs
 early_stop_callback = EarlyStopping(monitor="val_loss", patience=5, verbose=1)
@@ -490,8 +487,6 @@ history = model.fit(
 )
 
 model.save_weights(f"{MODEL_PATH}/weights.h5")
-
-import matplotlib.pyplot as plt
 
 fig = plt.figure(figsize=(15, 5))
 plt.plot(
