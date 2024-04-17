@@ -490,3 +490,27 @@ history = model.fit(
 )
 
 model.save_weights(f"{MODEL_PATH}/weights.h5")
+
+import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(15, 5))
+plt.plot(
+    history.history["loss"],
+    linestyle="solid",
+    marker="o",
+    color="crimson",
+    label="Train",
+)
+plt.plot(
+    history.history["val_loss"],
+    linestyle="solid",
+    marker="o",
+    color="dodgerblue",
+    label="Validation",
+)
+plt.xlabel("Epochs", fontsize=14)
+plt.ylabel("Loss", fontsize=14)
+plt.title("Loss", fontsize=15)
+plt.legend(loc="best")
+fig.savefig(f"{MODEL_PATH}/evaluation.png", bbox_inches="tight")
+plt.show()
