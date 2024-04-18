@@ -368,7 +368,7 @@ tokenized_datasets = raw_datasets.map(tokenize_function, batched=True)
 print("input_ids of sentence 1484:", tokenized_datasets["train"][1484]["input_ids"])
 
 MAX_SEQUENCE_LENGTH = tokenizer.model_max_length
-MODEL_PATH = "/models"
+MODEL_PATH = "./models"
 BATCH_SIZE = 16
 
 STEPS_PER_EPOCH = len(raw_datasets["train"]) // BATCH_SIZE
