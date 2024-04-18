@@ -5,6 +5,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import Input, Dense, Dropout, concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.utils import plot_model
 from transformers import AutoTokenizer
 from transformers import TFAutoModel
 from vncorenlp import VnCoreNLP
@@ -509,3 +510,120 @@ plt.title("Loss", fontsize=15)
 plt.legend(loc="best")
 fig.savefig(f"{MODEL_PATH}/evaluation.png", bbox_inches="tight")
 plt.show()
+
+reloaded_model = create_model(optimizer)
+reloaded_model.load_weights(f"{MODEL_PATH}/weights.h5")
+reloaded_model.summary()
+
+plot_model(
+    reloaded_model, to_file=f"{MODEL_PATH}/architecture.png", rankdir="LR", dpi=52
+)
+
+y_test_argmax = np.argmax(y_test, axis=-1)
+print(y_test_argmax)
+
+# Predict on test data
+
+
+def predict(model, inputs, batch_size=1, verbose=0):
+    y_pred = model.predict(inputs, batch_size=batch_size, verbose=verbose)
+    y_pred = y_pred.reshape(len(y_pred), -1, 4)
+    return np.argmax(y_pred, axis=-1)  # sentiment values (position that have max value)
+
+
+def print_pred(replacements, aspects, sentence_pred):
+    sentiments = map(lambda x: replacements[x], sentence_pred)
+    for aspect, sentiment in zip(aspects, sentiments):
+        if sentiment:
+            print(f"=> {aspect},{sentiment}")
+
+
+y_pred = predict(reloaded_model, test_tf_dataset, BATCH_SIZE, verbose=1)
+reloaded_model.evaluate(test_tf_dataset, batch_size=BATCH_SIZE, verbose=1)
+
+replacements = {0: None, 1: "negative", 2: "positive"}
+aspects = df_test.columns[1:]
+
+sen_idx = 19
+print("Example:", df_test["review"][sen_idx])
+print_pred(replacements, aspects, y_pred[sen_idx])
+
+# Predict random text
+example_input = text_preprocess(input("Enter your sentence: "))
+tokenized_input = tokenizer(example_input, padding="max_length", truncation=True)
+features = {x: [[tokenized_input[x]]] for x in tokenizer.model_input_names}
+
+pred = predict(reloaded_model, Dataset.from_tensor_slices(features))
+print_pred(replacements, aspects, pred[0])
+
+print("Report metrics")
+
+print("Polarity Detection")
+
+aspect_test = []
+aspect_pred = []
+
+for row_test, row_pred in zip(y_test_argmax, y_pred):
+    for index, (col_test, col_pred) in enumerate(zip(row_test, row_pred)):
+        aspect_test.append(bool(col_test) * aspects[index])
+        aspect_pred.append(bool(col_pred) * aspects[index])
+
+from sklearn.metrics import classification_report
+
+aspect_report = classification_report(
+    aspect_test, aspect_pred, digits=4, zero_division=1, output_dict=True
+)
+print(classification_report(aspect_test, aspect_pred, digits=4, zero_division=1))
+
+print("Polarity Detection")
+
+y_test_flat = y_test_argmax.flatten()
+y_pred_flat = y_pred.flatten()
+target_names = list(map(str, replacements.values()))
+
+polarity_report = classification_report(
+    y_test_flat, y_pred_flat, digits=4, output_dict=True
+)
+print(
+    classification_report(y_test_flat, y_pred_flat, target_names=target_names, digits=4)
+)
+
+print("Aspect + Polarity")
+
+aspect_polarity_test = []
+aspect_polarity_pred = []
+
+for row_test, row_pred in zip(y_test_argmax, y_pred):
+    for index, (col_test, col_pred) in enumerate(zip(row_test, row_pred)):
+        aspect_polarity_test.append(f"{aspects[index]},{replacements[col_test]}")
+        aspect_polarity_pred.append(f"{aspects[index]},{replacements[col_pred]}")
+
+aspect_polarity_report = classification_report(
+    aspect_polarity_test,
+    aspect_polarity_pred,
+    digits=4,
+    zero_division=1,
+    output_dict=True,
+)
+print(
+    classification_report(
+        aspect_polarity_test, aspect_polarity_pred, digits=4, zero_division=1
+    )
+)
+
+print("Summary")
+
+aspect_dict = aspect_report["macro avg"]
+aspect_dict["accuracy"] = aspect_report["accuracy"]
+
+polarity_dict = polarity_report["macro avg"]
+polarity_dict["accuracy"] = polarity_report["accuracy"]
+
+aspect_polarity_dict = aspect_polarity_report["macro avg"]
+aspect_polarity_dict["accuracy"] = aspect_polarity_report["accuracy"]
+
+df_report = pd.DataFrame.from_dict([aspect_dict, polarity_dict, aspect_polarity_dict])
+df_report.index = ["Aspect Detection", "Polarity Detection", "Aspect + Polarity"]
+df_report.drop("support", axis=1)
+
+print(df_report)

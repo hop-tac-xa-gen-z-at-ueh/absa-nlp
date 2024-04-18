@@ -19,6 +19,7 @@ nltk = "^3.8.1"
 pandas = "^2.2.2"
 matplotlib = "^3.8.4"
 openai = "^1.21.0"
+scikit-learn = "^1.4.2"
 
 
 [build-system]
