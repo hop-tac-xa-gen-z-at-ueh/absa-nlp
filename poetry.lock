@@ -2085,6 +2085,25 @@ files = [
 typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
+name = "pydot"
+version = "2.0.0"
+description = "Python interface to Graphviz's Dot"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pydot-2.0.0-py3-none-any.whl", hash = "sha256:408a47913ea7bd5d2d34b274144880c1310c4aee901f353cf21fe2e526a4ea28"},
+    {file = "pydot-2.0.0.tar.gz", hash = "sha256:60246af215123fa062f21cd791be67dda23a6f280df09f68919e637a1e4f3235"},
+]
+
+[package.dependencies]
+pyparsing = ">=3"
+
+[package.extras]
+dev = ["black", "chardet"]
+release = ["zest.releaser[recommended]"]
+tests = ["black", "chardet", "tox"]
+
+[[package]]
 name = "pyparsing"
 version = "3.1.2"
 description = "pyparsing module - Classes and methods to define and execute parsing grammars"
@@ -3386,4 +3405,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "3.9.19"
-content-hash = "7a9cad822cbe89577a3d1463415c7bef3e06f8153c724bbd4b76dee91dcd40eb"
+content-hash = "13101de5ddc0304cb2fc5cc869f573c9f252d8e07d0cde14047ab6c057504813"

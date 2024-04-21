@@ -10,6 +10,7 @@
     - `curl https://pyenv.run | bash`
     - https://github.com/pyenv/pyenv/wiki#suggested-build-environment
     - `pyenv install 3.9.19`
+-  `sudo apt-get install graphviz`
 - `pip install poetry`
 - Optional: `poetry env use 3.9.19`
 - `poetry install`
