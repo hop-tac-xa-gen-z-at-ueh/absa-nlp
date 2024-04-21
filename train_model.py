@@ -548,14 +548,6 @@ sen_idx = 19
 print("Example:", df_test["review"][sen_idx])
 print_pred(replacements, aspects, y_pred[sen_idx])
 
-# Predict random text
-example_input = text_preprocess(input("Enter your sentence: "))
-tokenized_input = tokenizer(example_input, padding="max_length", truncation=True)
-features = {x: [[tokenized_input[x]]] for x in tokenizer.model_input_names}
-
-pred = predict(reloaded_model, Dataset.from_tensor_slices(features))
-print_pred(replacements, aspects, pred[0])
-
 print("Report metrics")
 
 print("Polarity Detection")
@@ -627,3 +619,15 @@ df_report.index = ["Aspect Detection", "Polarity Detection", "Aspect + Polarity"
 df_report.drop("support", axis=1)
 
 print(df_report)
+
+# Predict random text
+while True:
+    user_input = input("Enter your sentence or 'No' to quit: ")
+    if user_input.lower() == "no":
+        break
+    example_input = text_preprocess(user_input)
+    tokenized_input = tokenizer(example_input, padding="max_length", truncation=True)
+    features = {x: [[tokenized_input[x]]] for x in tokenizer.model_input_names}
+
+    pred = predict(reloaded_model, Dataset.from_tensor_slices(features))
+    print_pred(replacements, aspects, pred[0])
