@@ -519,10 +519,10 @@ plot_model(
     reloaded_model, to_file=f"{MODEL_PATH}/architecture.png", rankdir="LR", dpi=52
 )
 
+y_train_argmax = np.argmax(y_train, axis=-1)
+y_val_argmax = np.argmax(y_val, axis=-1)
 y_test_argmax = np.argmax(y_test, axis=-1)
 print(y_test_argmax)
-
-# Predict on test data
 
 
 def predict(model, inputs, batch_size=1, verbose=0):
@@ -537,6 +537,10 @@ def print_pred(replacements, aspects, sentence_pred):
         if sentiment:
             print(f"=> {aspect},{sentiment}")
 
+
+# Predict on test data
+
+print("Predict on test data")
 
 y_pred = predict(reloaded_model, test_tf_dataset, BATCH_SIZE, verbose=1)
 reloaded_model.evaluate(test_tf_dataset, batch_size=BATCH_SIZE, verbose=1)
@@ -619,6 +623,182 @@ df_report.index = ["Aspect Detection", "Polarity Detection", "Aspect + Polarity"
 df_report.drop("support", axis=1)
 
 print(df_report)
+
+# Predict on val data
+
+print("Predict on val data")
+
+y_pred = predict(reloaded_model, val_tf_dataset, BATCH_SIZE, verbose=1)
+reloaded_model.evaluate(val_tf_dataset, batch_size=BATCH_SIZE, verbose=1)
+
+replacements = {0: None, 1: "negative", 2: "positive"}
+aspects = df_val.columns[1:]
+
+sen_idx = 19
+print("Example:", df_val["review"][sen_idx])
+print_pred(replacements, aspects, y_pred[sen_idx])
+
+print("Report metrics")
+
+print("Polarity Detection")
+
+aspect_test = []
+aspect_pred = []
+
+for row_test, row_pred in zip(y_val_argmax, y_pred):
+    for index, (col_test, col_pred) in enumerate(zip(row_test, row_pred)):
+        aspect_test.append(bool(col_test) * aspects[index])
+        aspect_pred.append(bool(col_pred) * aspects[index])
+
+from sklearn.metrics import classification_report
+
+aspect_report = classification_report(
+    aspect_test, aspect_pred, digits=4, zero_division=1, output_dict=True
+)
+print(classification_report(aspect_test, aspect_pred, digits=4, zero_division=1))
+
+print("Polarity Detection")
+
+y_val_flat = y_val_argmax.flatten()
+y_pred_flat = y_pred.flatten()
+target_names = list(map(str, replacements.values()))
+
+polarity_report = classification_report(
+    y_val_flat, y_pred_flat, digits=4, output_dict=True
+)
+print(
+    classification_report(y_val_flat, y_pred_flat, target_names=target_names, digits=4)
+)
+
+print("Aspect + Polarity")
+
+aspect_polarity_test = []
+aspect_polarity_pred = []
+
+for row_test, row_pred in zip(y_val_argmax, y_pred):
+    for index, (col_test, col_pred) in enumerate(zip(row_test, row_pred)):
+        aspect_polarity_test.append(f"{aspects[index]},{replacements[col_test]}")
+        aspect_polarity_pred.append(f"{aspects[index]},{replacements[col_pred]}")
+
+aspect_polarity_report = classification_report(
+    aspect_polarity_test,
+    aspect_polarity_pred,
+    digits=4,
+    zero_division=1,
+    output_dict=True,
+)
+print(
+    classification_report(
+        aspect_polarity_test, aspect_polarity_pred, digits=4, zero_division=1
+    )
+)
+
+print("Summary")
+
+aspect_dict = aspect_report["macro avg"]
+aspect_dict["accuracy"] = aspect_report["accuracy"]
+
+polarity_dict = polarity_report["macro avg"]
+polarity_dict["accuracy"] = polarity_report["accuracy"]
+
+aspect_polarity_dict = aspect_polarity_report["macro avg"]
+aspect_polarity_dict["accuracy"] = aspect_polarity_report["accuracy"]
+
+df_report = pd.DataFrame.from_dict([aspect_dict, polarity_dict, aspect_polarity_dict])
+df_report.index = ["Aspect Detection", "Polarity Detection", "Aspect + Polarity"]
+df_report.drop("support", axis=1)
+
+print(df_report)
+
+
+# Predict on train data
+
+print("Predict on train data")
+
+y_pred = predict(reloaded_model, train_tf_dataset, BATCH_SIZE, verbose=1)
+reloaded_model.evaluate(train_tf_dataset, batch_size=BATCH_SIZE, verbose=1)
+
+replacements = {0: None, 1: "negative", 2: "positive"}
+aspects = df_train.columns[1:]
+
+sen_idx = 19
+print("Example:", df_train["review"][sen_idx])
+print_pred(replacements, aspects, y_pred[sen_idx])
+
+print("Report metrics")
+
+print("Polarity Detection")
+
+aspect_test = []
+aspect_pred = []
+
+for row_test, row_pred in zip(y_train_argmax, y_pred):
+    for index, (col_test, col_pred) in enumerate(zip(row_test, row_pred)):
+        aspect_test.append(bool(col_test) * aspects[index])
+        aspect_pred.append(bool(col_pred) * aspects[index])
+
+from sklearn.metrics import classification_report
+
+aspect_report = classification_report(
+    aspect_test, aspect_pred, digits=4, zero_division=1, output_dict=True
+)
+print(classification_report(aspect_test, aspect_pred, digits=4, zero_division=1))
+
+print("Polarity Detection")
+
+y_train_flat = y_train_argmax.flatten()
+y_pred_flat = y_pred.flatten()
+target_names = list(map(str, replacements.values()))
+
+polarity_report = classification_report(
+    y_train_flat, y_pred_flat, digits=4, output_dict=True
+)
+print(
+    classification_report(
+        y_train_flat, y_pred_flat, target_names=target_names, digits=4
+    )
+)
+
+print("Aspect + Polarity")
+
+aspect_polarity_test = []
+aspect_polarity_pred = []
+
+for row_test, row_pred in zip(y_train_argmax, y_pred):
+    for index, (col_test, col_pred) in enumerate(zip(row_test, row_pred)):
+        aspect_polarity_test.append(f"{aspects[index]},{replacements[col_test]}")
+        aspect_polarity_pred.append(f"{aspects[index]},{replacements[col_pred]}")
+
+aspect_polarity_report = classification_report(
+    aspect_polarity_test,
+    aspect_polarity_pred,
+    digits=4,
+    zero_division=1,
+    output_dict=True,
+)
+print(
+    classification_report(
+        aspect_polarity_test, aspect_polarity_pred, digits=4, zero_division=1
+    )
+)
+
+print("Summary")
+
+aspect_dict = aspect_report["macro avg"]
+aspect_dict["accuracy"] = aspect_report["accuracy"]
+
+polarity_dict = polarity_report["macro avg"]
+polarity_dict["accuracy"] = polarity_report["accuracy"]
+
+aspect_polarity_dict = aspect_polarity_report["macro avg"]
+aspect_polarity_dict["accuracy"] = aspect_polarity_report["accuracy"]
+
+df_report = pd.DataFrame.from_dict([aspect_dict, polarity_dict, aspect_polarity_dict])
+df_report.index = ["Aspect Detection", "Polarity Detection", "Aspect + Polarity"]
+df_report.drop("support", axis=1)
+
+print(df_report)
+
 
 # Predict random text
 while True:
