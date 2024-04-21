@@ -366,7 +366,7 @@ def tokenize_function(dataset):
 
 
 tokenized_datasets = raw_datasets.map(tokenize_function, batched=True)
-print("input_ids of sentence 1484:", tokenized_datasets["train"][1484]["input_ids"])
+print("input_ids of review 10:", tokenized_datasets["train"][10]["input_ids"])
 
 MAX_SEQUENCE_LENGTH = tokenizer.model_max_length
 MODEL_PATH = "./models"
